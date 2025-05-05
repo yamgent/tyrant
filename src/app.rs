@@ -3,8 +3,10 @@ use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    window::{Window, WindowId},
+    window::WindowId,
 };
+
+use crate::{core::Core, oswin::OswinManager};
 
 pub struct App {
     app_data: Option<AppData>,
@@ -27,24 +29,40 @@ impl App {
 }
 
 struct AppData {
-    window: Window,
+    core: Core,
+    oswin_manager: OswinManager,
 }
 
 impl AppData {
     fn new(event_loop: &ActiveEventLoop) -> Self {
         Self {
-            window: event_loop
-                .create_window(Window::default_attributes())
-                .expect("can create window"),
+            core: Core { dummy: 6.0 },
+            oswin_manager: OswinManager::new(event_loop),
         }
     }
 }
 
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        if self.app_data.is_none() {
-            self.app_data = Some(AppData::new(event_loop))
-        }
+        let mut app_data = self
+            .app_data
+            .take()
+            .unwrap_or_else(|| AppData::new(event_loop));
+
+        app_data.oswin_manager.resume();
+
+        self.app_data = Some(app_data);
+    }
+
+    fn suspended(&mut self, event_loop: &ActiveEventLoop) {
+        let mut app_data = self
+            .app_data
+            .take()
+            .unwrap_or_else(|| AppData::new(event_loop));
+
+        app_data.oswin_manager.suspend();
+
+        self.app_data = Some(app_data);
     }
 
     fn window_event(
@@ -53,19 +71,19 @@ impl ApplicationHandler for App {
         window_id: WindowId,
         event: WindowEvent,
     ) {
-        let app_data = match self.app_data {
-            Some(ref mut app_data) => app_data,
-            None => return,
+        let Some(app_data) = &mut self.app_data else {
+            return;
         };
 
         match event {
             WindowEvent::CloseRequested => {
-                event_loop.exit();
+                app_data.oswin_manager.close(window_id, event_loop);
+            }
+            WindowEvent::Resized(size) => {
+                app_data.oswin_manager.resize(window_id, size);
             }
             WindowEvent::RedrawRequested => {
-                if app_data.window.id() == window_id {
-                    app_data.window.request_redraw();
-                }
+                app_data.oswin_manager.redraw(window_id, &app_data.core);
             }
             _ => {}
         }

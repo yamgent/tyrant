@@ -1,4 +1,6 @@
 mod app;
+mod core;
+mod oswin;
 
 use anyhow::Result;
 
