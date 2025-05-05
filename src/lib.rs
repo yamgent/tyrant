@@ -1,6 +1,7 @@
+mod app;
+
 use anyhow::Result;
 
 pub fn run() -> Result<()> {
-    println!("Hello world!");
-    Ok(())
+    app::App::run_app()
 }
