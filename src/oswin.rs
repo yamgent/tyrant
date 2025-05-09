@@ -58,7 +58,7 @@ impl OswinManager {
 
     pub fn resize(&mut self, window_id: WindowId, size: PhysicalSize<u32>) {
         if let Some(oswin) = self.oswins.get_mut(&window_id) {
-            oswin.resize(&mut self.render_context, size);
+            oswin.resize(&self.render_context, size);
         }
     }
 
