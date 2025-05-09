@@ -11,14 +11,17 @@ use crate::{
 
 pub struct Core {
     pub default_fonts: DefaultFonts,
-
-    // TODO: remove this dummy test code
-    pub dummy: f64,
 }
 
 impl Core {
+    pub fn new() -> Self {
+        Self {
+            default_fonts: DefaultFonts::new(),
+        }
+    }
+
     pub fn render(&self, scene: &mut Scene) {
-        let stroke = Stroke::new(self.dummy);
+        let stroke = Stroke::new(6.0);
         let rect = RoundedRect::new(10.0, 10.0, 240.0, 240.0, 20.0);
         let rect_stroke_color = Color::new([0.9804, 0.702, 0.5294, 1.]);
         scene.stroke(&stroke, Affine::IDENTITY, rect_stroke_color, None, &rect);

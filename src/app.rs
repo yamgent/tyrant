@@ -6,7 +6,7 @@ use winit::{
     window::WindowId,
 };
 
-use crate::{core::Core, font::DefaultFonts, oswin::OswinManager};
+use crate::{core::Core, oswin::OswinManager};
 
 pub struct App {
     app_data: Option<AppData>,
@@ -36,10 +36,7 @@ struct AppData {
 impl AppData {
     fn new(event_loop: &ActiveEventLoop) -> Self {
         let oswin_manager = OswinManager::new(event_loop);
-        let core = Core {
-            dummy: 6.0,
-            default_fonts: DefaultFonts::new(),
-        };
+        let core = Core::new();
 
         Self {
             core,
