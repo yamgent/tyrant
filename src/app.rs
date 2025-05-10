@@ -88,6 +88,11 @@ impl ApplicationHandler for App {
             WindowEvent::RedrawRequested => {
                 app_data.oswin_manager.redraw(window_id, &app_data.core);
             }
+            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                app_data
+                    .oswin_manager
+                    .update_scale_factor(window_id, scale_factor);
+            }
             _ => {}
         }
     }
