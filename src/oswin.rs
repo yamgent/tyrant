@@ -1,7 +1,7 @@
 use std::{collections::HashMap, num::NonZeroUsize, sync::Arc};
 
 use vello::{
-    AaConfig, AaSupport, RenderParams, Renderer, RendererOptions, Scene,
+    AaConfig, AaSupport, RenderParams, Renderer, RendererOptions,
     util::{RenderContext, RenderSurface},
     wgpu::{Maintain, PresentMode},
 };
@@ -11,7 +11,10 @@ use winit::{
     window::{Window, WindowId},
 };
 
-use crate::core::Core;
+use crate::{
+    canvas::{Canvas, RenderToCanvas},
+    core::Core,
+};
 
 pub struct OswinManager {
     render_context: RenderContext,
@@ -72,7 +75,7 @@ impl OswinManager {
 struct Oswin {
     state: OswinState,
     window: Arc<Window>,
-    scene: Scene,
+    canvas: Canvas,
 }
 
 enum OswinState {
@@ -89,7 +92,7 @@ impl Oswin {
                     .create_window(Window::default_attributes())
                     .expect("can create window"),
             ),
-            scene: Scene::new(),
+            canvas: Canvas::new(),
         }
     }
 
@@ -168,9 +171,9 @@ impl Oswin {
 
         // instead of re-creating scene every frame, we just
         // reset the same scene to save memory allocation
-        self.scene.reset();
+        self.canvas.reset();
 
-        core.render(&mut self.scene);
+        core.render(&mut self.canvas);
 
         let width = surface.config.width;
         let height = surface.config.height;
@@ -183,10 +186,10 @@ impl Oswin {
         renderers
             .get_mut(&surface.dev_id)
             .expect("have valid renderer")
-            .render_to_surface(
+            .render_to_canvas(
                 &device_handle.device,
                 &device_handle.queue,
-                &self.scene,
+                &self.canvas,
                 &surface_texture,
                 &RenderParams {
                     base_color: vello::peniko::color::palette::css::BLACK,

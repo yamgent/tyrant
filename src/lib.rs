@@ -1,4 +1,5 @@
 mod app;
+mod canvas;
 mod command_bar;
 mod core;
 mod font;

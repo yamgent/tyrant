@@ -1,10 +1,10 @@
 use vello::{
-    Scene,
-    kurbo::{Affine, RoundedRect, Stroke},
-    peniko::{Brush, Color, Fill, color::palette},
+    kurbo::Affine,
+    peniko::{Brush, Fill, color::palette},
 };
 
 use crate::{
+    canvas::Canvas,
     command_bar::CommandBar,
     font::DefaultFonts,
     ui_text::{UiBasicText, UiFont},
@@ -24,7 +24,7 @@ impl Core {
         }
     }
 
-    pub fn render(&self, scene: &mut Scene) {
+    pub fn render(&self, canvas: &mut Canvas) {
         let mode = if self.command_bar.active() {
             "COMMAND"
         } else {
@@ -35,7 +35,7 @@ impl Core {
             if let Some(mut ui_text) = UiBasicText::new(ui_font) {
                 ui_text.push_str(mode);
                 ui_text.draw(
-                    scene,
+                    canvas,
                     Affine::translate((40.0, 40.0)),
                     None,
                     &Brush::Solid(palette::css::WHITE),
