@@ -31,12 +31,13 @@ impl Core {
             "NORMAL"
         };
 
-        if let Some(ui_font) = UiFont::new(self.default_fonts.monospace(), 32.0, &[]) {
+        let font_size = 32.0;
+        if let Some(ui_font) = UiFont::new(self.default_fonts.monospace(), font_size, &[]) {
             if let Some(mut ui_text) = UiBasicText::new(ui_font) {
                 ui_text.push_str(mode);
                 ui_text.draw(
                     canvas,
-                    Affine::translate((40.0, 40.0)),
+                    Affine::translate((0.0, font_size as f64)),
                     None,
                     &Brush::Solid(palette::css::WHITE),
                     Fill::NonZero,

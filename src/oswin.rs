@@ -70,6 +70,12 @@ impl OswinManager {
             oswin.redraw(&self.render_context, &mut self.renderers, core);
         }
     }
+
+    pub fn update_scale_factor(&mut self, window_id: WindowId, scale_factor: f64) {
+        if let Some(oswin) = self.oswins.get_mut(&window_id) {
+            oswin.update_scale_factor(scale_factor);
+        }
+    }
 }
 
 struct Oswin {
@@ -85,14 +91,17 @@ enum OswinState {
 
 impl Oswin {
     fn new(event_loop: &ActiveEventLoop) -> Self {
+        let window = Arc::new(
+            event_loop
+                .create_window(Window::default_attributes())
+                .expect("can create window"),
+        );
+        let scale_factor = window.scale_factor();
+
         Self {
             state: OswinState::Suspended,
-            window: Arc::new(
-                event_loop
-                    .create_window(Window::default_attributes())
-                    .expect("can create window"),
-            ),
-            canvas: Canvas::new(),
+            window,
+            canvas: Canvas::new(scale_factor),
         }
     }
 
@@ -203,5 +212,9 @@ impl Oswin {
         surface_texture.present();
 
         device_handle.device.poll(Maintain::Poll);
+    }
+
+    fn update_scale_factor(&mut self, scale_factor: f64) {
+        self.canvas.update_scale_factor(scale_factor);
     }
 }
