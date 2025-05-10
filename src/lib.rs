@@ -1,4 +1,5 @@
 mod app;
+mod command_bar;
 mod core;
 mod font;
 mod oswin;
