@@ -47,7 +47,10 @@ impl Canvas {
     ) {
         self.scene
             .draw_glyphs(ui_font.font())
-            .font_size(ui_font.font_size_ppem() * self.scale_factor as f32)
+            // the transform and glyph_transform will scale the drawing using
+            // the DPI value self.scale_factor already, hence there's no need
+            // to apply scale to the font_size again
+            .font_size(ui_font.font_size_ppem())
             .transform(transform.then_scale(self.scale_factor))
             .glyph_transform(glyph_transform.map(|t| t.then_scale(self.scale_factor)))
             .normalized_coords(bytemuck::cast_slice(ui_font.var_loc().coords()))
@@ -56,8 +59,11 @@ impl Canvas {
             .draw(
                 style,
                 glyphs.into_iter().map(|g| Glyph {
-                    x: g.x * self.scale_factor as f32,
-                    y: g.y * self.scale_factor as f32,
+                    // transform and glyph_transform already scales the drawing
+                    // to take care of DPI, don't need to apply `self.scale_factor`
+                    // to the positions again
+                    x: g.x,
+                    y: g.y,
                     ..g
                 }),
             );
