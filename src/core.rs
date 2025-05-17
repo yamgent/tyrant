@@ -37,7 +37,7 @@ impl Core {
                 ui_text.push_str(mode);
                 ui_text.draw(
                     canvas,
-                    Affine::translate((0.0, font_size as f64)),
+                    Affine::translate((0.0, canvas.size().height)),
                     None,
                     &Brush::Solid(palette::css::WHITE),
                     Fill::NonZero,

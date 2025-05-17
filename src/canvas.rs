@@ -4,6 +4,7 @@ use vello::{
     peniko::{BrushRef, StyleRef},
     wgpu::{Device, Queue, SurfaceTexture},
 };
+use winit::dpi::{LogicalSize, PhysicalSize};
 
 use crate::ui_text::UiFont;
 
@@ -16,13 +17,23 @@ pub struct Canvas {
 
     /// dpi
     scale_factor: f64,
+
+    /// physical window content size
+    ///     - physical = ignoring DPI, actual pixels of window
+    ///     - content = exclude title bar and borders
+    ///
+    /// Outsiders should not use physical size directly,
+    /// they should use logical size instead (use `Canvas::size()`)
+    /// which will scale their values by `scale_factor`
+    physical_window_content_size: PhysicalSize<u32>,
 }
 
 impl Canvas {
-    pub fn new(scale_factor: f64) -> Self {
+    pub fn new(scale_factor: f64, physical_window_content_size: PhysicalSize<u32>) -> Self {
         Self {
             scene: Scene::new(),
             scale_factor,
+            physical_window_content_size,
         }
     }
 
@@ -34,6 +45,15 @@ impl Canvas {
 
     pub fn update_scale_factor(&mut self, scale_factor: f64) {
         self.scale_factor = scale_factor;
+    }
+
+    pub fn resize(&mut self, physical_window_content_size: PhysicalSize<u32>) {
+        self.physical_window_content_size = physical_window_content_size;
+    }
+
+    pub fn size(&self) -> LogicalSize<f64> {
+        self.physical_window_content_size
+            .to_logical(self.scale_factor)
     }
 
     pub fn draw_text<'a>(

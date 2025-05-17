@@ -97,11 +97,12 @@ impl Oswin {
                 .expect("can create window"),
         );
         let scale_factor = window.scale_factor();
+        let physical_size = window.inner_size();
 
         Self {
             state: OswinState::Suspended,
             window,
-            canvas: Canvas::new(scale_factor),
+            canvas: Canvas::new(scale_factor, physical_size),
         }
     }
 
@@ -166,6 +167,7 @@ impl Oswin {
         };
 
         render_context.resize_surface(surface, size.width, size.height);
+        self.canvas.resize(size);
     }
 
     fn redraw(
