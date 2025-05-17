@@ -1,37 +1,43 @@
 use vello::{
-    Scene,
-    kurbo::{Affine, RoundedRect, Stroke},
-    peniko::{Brush, Color, Fill, color::palette},
+    kurbo::Affine,
+    peniko::{Brush, Fill, color::palette},
 };
 
 use crate::{
+    canvas::Canvas,
+    command_bar::CommandBar,
     font::DefaultFonts,
     ui_text::{UiBasicText, UiFont},
 };
 
 pub struct Core {
     pub default_fonts: DefaultFonts,
+
+    pub command_bar: CommandBar,
 }
 
 impl Core {
     pub fn new() -> Self {
         Self {
             default_fonts: DefaultFonts::new(),
+            command_bar: CommandBar::new(),
         }
     }
 
-    pub fn render(&self, scene: &mut Scene) {
-        let stroke = Stroke::new(6.0);
-        let rect = RoundedRect::new(10.0, 10.0, 240.0, 240.0, 20.0);
-        let rect_stroke_color = Color::new([0.9804, 0.702, 0.5294, 1.]);
-        scene.stroke(&stroke, Affine::IDENTITY, rect_stroke_color, None, &rect);
+    pub fn render(&self, canvas: &mut Canvas) {
+        let mode = if self.command_bar.active() {
+            "COMMAND"
+        } else {
+            "NORMAL"
+        };
 
-        if let Some(ui_font) = UiFont::new(self.default_fonts.monospace(), 32.0, &[]) {
+        let font_size = 32.0;
+        if let Some(ui_font) = UiFont::new(self.default_fonts.monospace(), font_size, &[]) {
             if let Some(mut ui_text) = UiBasicText::new(ui_font) {
-                ui_text.push_str("Hello world\nand bye!");
+                ui_text.push_str(mode);
                 ui_text.draw(
-                    scene,
-                    Affine::translate((40.0, 40.0)),
+                    canvas,
+                    Affine::translate((0.0, canvas.size().height)),
                     None,
                     &Brush::Solid(palette::css::WHITE),
                     Fill::NonZero,

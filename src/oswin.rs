@@ -1,7 +1,7 @@
 use std::{collections::HashMap, num::NonZeroUsize, sync::Arc};
 
 use vello::{
-    AaConfig, AaSupport, RenderParams, Renderer, RendererOptions, Scene,
+    AaConfig, AaSupport, RenderParams, Renderer, RendererOptions,
     util::{RenderContext, RenderSurface},
     wgpu::{Maintain, PresentMode},
 };
@@ -11,7 +11,10 @@ use winit::{
     window::{Window, WindowId},
 };
 
-use crate::core::Core;
+use crate::{
+    canvas::{Canvas, RenderToCanvas},
+    core::Core,
+};
 
 pub struct OswinManager {
     render_context: RenderContext,
@@ -67,12 +70,18 @@ impl OswinManager {
             oswin.redraw(&self.render_context, &mut self.renderers, core);
         }
     }
+
+    pub fn update_scale_factor(&mut self, window_id: WindowId, scale_factor: f64) {
+        if let Some(oswin) = self.oswins.get_mut(&window_id) {
+            oswin.update_scale_factor(scale_factor);
+        }
+    }
 }
 
 struct Oswin {
     state: OswinState,
     window: Arc<Window>,
-    scene: Scene,
+    canvas: Canvas,
 }
 
 enum OswinState {
@@ -82,14 +91,18 @@ enum OswinState {
 
 impl Oswin {
     fn new(event_loop: &ActiveEventLoop) -> Self {
+        let window = Arc::new(
+            event_loop
+                .create_window(Window::default_attributes())
+                .expect("can create window"),
+        );
+        let scale_factor = window.scale_factor();
+        let physical_size = window.inner_size();
+
         Self {
             state: OswinState::Suspended,
-            window: Arc::new(
-                event_loop
-                    .create_window(Window::default_attributes())
-                    .expect("can create window"),
-            ),
-            scene: Scene::new(),
+            window,
+            canvas: Canvas::new(scale_factor, physical_size),
         }
     }
 
@@ -154,6 +167,7 @@ impl Oswin {
         };
 
         render_context.resize_surface(surface, size.width, size.height);
+        self.canvas.resize(size);
     }
 
     fn redraw(
@@ -168,9 +182,9 @@ impl Oswin {
 
         // instead of re-creating scene every frame, we just
         // reset the same scene to save memory allocation
-        self.scene.reset();
+        self.canvas.reset();
 
-        core.render(&mut self.scene);
+        core.render(&mut self.canvas);
 
         let width = surface.config.width;
         let height = surface.config.height;
@@ -183,10 +197,10 @@ impl Oswin {
         renderers
             .get_mut(&surface.dev_id)
             .expect("have valid renderer")
-            .render_to_surface(
+            .render_to_canvas(
                 &device_handle.device,
                 &device_handle.queue,
-                &self.scene,
+                &self.canvas,
                 &surface_texture,
                 &RenderParams {
                     base_color: vello::peniko::color::palette::css::BLACK,
@@ -200,5 +214,9 @@ impl Oswin {
         surface_texture.present();
 
         device_handle.device.poll(Maintain::Poll);
+    }
+
+    fn update_scale_factor(&mut self, scale_factor: f64) {
+        self.canvas.update_scale_factor(scale_factor);
     }
 }

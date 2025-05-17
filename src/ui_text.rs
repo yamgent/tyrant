@@ -5,12 +5,12 @@ use skrifa::{
     metrics::{GlyphMetrics, Metrics},
 };
 use vello::{
-    Glyph, Scene,
+    Glyph,
     kurbo::Affine,
     peniko::{BrushRef, Font, StyleRef},
 };
 
-use crate::font;
+use crate::{canvas::Canvas, font};
 
 pub struct UiBasicText<'a> {
     ui_font: UiFont<'a>,
@@ -57,21 +57,20 @@ impl<'a> UiBasicText<'a> {
 
     pub fn draw(
         self,
-        scene: &'a mut Scene,
+        canvas: &'a mut Canvas,
         transform: Affine,
         glyph_transform: Option<Affine>,
         brush: impl Into<BrushRef<'a>>,
         style: impl Into<StyleRef<'a>>,
     ) {
-        scene
-            .draw_glyphs(self.ui_font.font)
-            .font_size(self.ui_font.font_size_ppem())
-            .transform(transform)
-            .glyph_transform(glyph_transform)
-            .normalized_coords(bytemuck::cast_slice(self.ui_font.var_loc.coords()))
-            .brush(brush)
-            .hint(false)
-            .draw(style, self.glyphs.into_iter());
+        canvas.draw_text(
+            transform,
+            glyph_transform,
+            brush,
+            style,
+            self.ui_font,
+            self.glyphs,
+        );
     }
 }
 
@@ -118,7 +117,15 @@ impl<'a> UiFont<'a> {
         self.font_ref.glyph_metrics(self.font_size, &self.var_loc)
     }
 
-    fn font_size_ppem(&self) -> f32 {
+    pub fn font(&self) -> &Font {
+        self.font
+    }
+
+    pub fn var_loc(&self) -> &Location {
+        &self.var_loc
+    }
+
+    pub fn font_size_ppem(&self) -> f32 {
         self.font_size.ppem().expect("is ppem")
     }
 }
